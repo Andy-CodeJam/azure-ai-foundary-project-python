@@ -2,19 +2,18 @@ from dataclasses import dataclass
 from dotenv import load_dotenv, find_dotenv
 import os
 from azure.search.documents import SearchClient
-from ..credential 
-
-credential = DefaultAzureCredential()
+from ..credential import ProjectCredential
 
 load_dotenv(find_dotenv())
 
 NAME = os.getenv("AZURE_SEARCH_SERVICE_NAME", "azure-search-service")
-RESOURCE_GROUP = os.getenv("PROJECT_RESOURCE_GROUP", "cfxmlid-fine-tuning-rg")
+RG = os.getenv("PROJECT_RESOURCE_GROUP", "cfxmlid-fine-tuning-rg")
 SKU = os.getenv("AZURE_SEARCH_SERVICE_SKU", "free")
-LOCATION = os.getenv("PROJECT_LOCATION", "eastus-2")
+LOC = os.getenv("PROJECT_LOCATION", "eastus-2")
 ENDPOINT = os.getenv("AZURE_AI_PROJECT_ENDPOINT")
 API_VERSION = os.getenv("AZURE_SEARCH_SERVICE_API_VERSION")
 INDEX_NAME = os.getenv("AZURE_SEARCH_SERVICE_INDEX_NAME")
+CRED = ProjectCredential()
 
 
 @dataclass
@@ -22,7 +21,7 @@ class AzureSearchService:
     """Azure Search Service configuration."""
 
     name: str = NAME
-    resource_group: str = RESOURCE_GROUP
+    resource_group: str = RG
     endpoint: str = ENDPOINT
     api_version: str = API_VERSION
     index_name: str = INDEX_NAME
@@ -37,6 +36,22 @@ class AzureSearchService:
         return SearchClient(
             endpoint=self.endpoint,
             index_name=self.index_name,
-            credential=credential,
-            api_version=self.api_version
+            credential=CRED(),
+            api_version=self.api_version,
         )
+
+    def validate(self):
+        """Validates that the service is configured correctly."""
+        if not self.name:
+            raise ValueError("Service name must be provided.")
+        if not self.resource_group:
+            raise ValueError("Resource group must be provided.")
+        if not self.endpoint:
+            raise ValueError("Endpoint must be provided.")
+        if not self.api_version:
+            raise ValueError("API version must be provided.")
+        if not self.index_name:
+            raise ValueError("Index name must be provided.")
+        
+
+        
